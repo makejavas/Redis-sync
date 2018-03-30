@@ -33,6 +33,11 @@ public class RedisSyncAop {
         Method method = ((MethodSignature)pjp.getSignature()).getMethod();
         String key = method.toString();
         RedisSync redisSync = method.getAnnotation(RedisSync.class);
+        //解决代理模式下无法获取真实的方法，导致无法获取方法上的注解问题
+        if (redisSync==null) {
+            Method realMethod = pjp.getTarget().getClass().getDeclaredMethod(method.getName(), method.getParameterTypes());
+            redisSync = realMethod.getAnnotation(RedisSync.class);
+        }
         long waitTime = redisSync.waitTime();
         long currTime = System.currentTimeMillis();
         Boolean state = iRedisService.setnx(key, currTime);
